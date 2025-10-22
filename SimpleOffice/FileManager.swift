@@ -15,8 +15,16 @@ class SimpleFileManager {
         
         if dialog.runModal() == .OK, let url = dialog.url {
             do {
-                try content.write(to: url, atomically: true, encoding: .utf8)
-                return true
+                // Определяем тип по расширению
+                if url.pathExtension == "pdf" {
+                    return exportToPDF(content: content, fileName: url.deletingPathExtension().lastPathComponent, saveURL: url)
+                } else if url.pathExtension == "html" {
+                    return try exportToHTML(content: content, saveURL: url)
+                } else {
+                    // По умолчанию текстовый файл
+                    try content.write(to: url, atomically: true, encoding: .utf8)
+                    return true
+                }
             } catch {
                 print("Ошибка сохранения: \(error)")
                 return false
@@ -32,7 +40,14 @@ class SimpleFileManager {
         
         if dialog.runModal() == .OK, let url = dialog.url {
             do {
-                return try String(contentsOf: url, encoding: .utf8)
+                if url.pathExtension == "pdf" {
+                    // Пока не реализовано, но можно добавить конвертер PDF в текст
+                    return "PDF файл. Текст пока не извлечен."
+                } else if url.pathExtension == "html" {
+                    return try String(contentsOf: url, encoding: .utf8)
+                } else {
+                    return try String(contentsOf: url, encoding: .utf8)
+                }
             } catch {
                 print("Ошибка открытия: \(error)")
             }
@@ -41,23 +56,16 @@ class SimpleFileManager {
     }
     
     // MARK: - 5. Multi-format Export
-    func exportToPDF(content: String, fileName: String) -> Bool {
-        // Простая реализация экспорта в PDF
+    func exportToPDF(content: String, fileName: String, saveURL: URL) -> Bool {
         let printInfo = NSPrintInfo.shared
         let printOperation = NSPrintOperation(view: createPDFView(content: content), printInfo: printInfo)
         printOperation.showsPrintPanel = false
         printOperation.showsProgressPanel = false
         
-        let savePanel = NSSavePanel()
-        savePanel.nameFieldStringValue = "\(fileName).pdf"
-        
-        if savePanel.runModal() == .OK, let url = savePanel.url {
-            printOperation.printInfo.dictionary()[NSPrintInfo.AttributeKey.jobDisposition] = NSPrintInfo.JobDisposition.save
-            printOperation.printInfo.dictionary()[NSPrintInfo.AttributeKey.jobSavingURL] = url
-            printOperation.run()
-            return true
-        }
-        return false
+        printOperation.printInfo.dictionary()[NSPrintInfo.AttributeKey.jobDisposition] = NSPrintInfo.JobDisposition.save
+        printOperation.printInfo.dictionary()[NSPrintInfo.AttributeKey.jobSavingURL] = saveURL
+        printOperation.run()
+        return true
     }
     
     private func createPDFView(content: String) -> NSView {
@@ -65,5 +73,22 @@ class SimpleFileManager {
         textView.string = content
         textView.font = NSFont.systemFont(ofSize: 12)
         return textView
+    }
+    
+    private func exportToHTML(content: String, saveURL: URL) throws -> Bool {
+        let htmlContent = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Document</title>
+        </head>
+        <body>
+            <pre>\(content)</pre>
+        </body>
+        </html>
+        """
+        try htmlContent.write(to: saveURL, atomically: true, encoding: .utf8)
+        return true
     }
 }
