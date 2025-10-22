@@ -40,7 +40,7 @@ class ViewController: NSViewController {
         view.addSubview(nuclearButton)
     }
     
-    // MARK: - 1. Pomodoro Timer Implementation
+    // MARK: - Pomodoro Timer Implementation
     private func setupPomodoroSection() {
         // Кнопка Pomodoro
         pomodoroButton = NSButton(title: "🍅 Старт", target: self, action: #selector(togglePomodoro))
@@ -99,7 +99,7 @@ class ViewController: NSViewController {
         pomodoroLabel.stringValue = String(format: "%02d:%02d", minutes, seconds)
     }
     
-    // MARK: - 2. Nuclear Option
+    // MARK: - Nuclear Option
     @objc private func nuclearOption() {
         let alert = NSAlert()
         alert.messageText = "Подтверждение ликвидации"
@@ -113,7 +113,7 @@ class ViewController: NSViewController {
         }
     }
     
-    // MARK: - 7. Theming & Customization
+    // MARK: - Theming & Customization
     private func setupTheming() {
         // Темная тема по умолчанию
         if #available(macOS 10.14, *) {
